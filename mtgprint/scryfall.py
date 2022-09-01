@@ -1,0 +1,90 @@
+import threading
+import time
+import requests
+from requests.adapters import HTTPAdapter, Retry
+import os.path
+import shutil
+import sys
+
+class Throttle:
+
+    def __init__(self, delay: float = 0.05):
+        self.delay = delay
+        self.lock = threading.Lock()
+        self.time = 0
+
+    def __enter__(self):
+        with self.lock:
+            if self.time + self.delay > time.time():
+                time.sleep(self.time + self.delay - time.time())
+            self.time = time.time()
+        return self
+
+
+    def __exit__(self,exc_type, exc_val, exc_tb):
+        pass
+
+rate_limiter = Throttle()
+SCRYFALL_URL="https://api.scryfall.com"
+
+http = requests.Session()
+retries = Retry(total=5,
+                status_forcelist=[ 429, 500, 502, 503, 504])
+
+http.mount('http://', HTTPAdapter(max_retries=retries))
+http.mount('https://', HTTPAdapter(max_retries=retries))
+
+
+
+def scryfall_named(card_name: str):
+        payload = {
+            'exact': card_name,       
+        }
+        with rate_limiter:
+            re = http.get(SCRYFALL_URL+"/cards/named",params=payload)
+        
+        re.raise_for_status()
+            
+        return re.json()
+
+def scryfall_get_localized_card(set, collector_number, lang):
+    with rate_limiter:
+        re = http.get(SCRYFALL_URL+"/cards/%s/%s/%s" %(set,collector_number, lang))
+    re.raise_for_status()
+    return re.json()
+
+def scryfall_search(payload, url=None):
+    with rate_limiter:
+        if url == None:
+            re = http.get(SCRYFALL_URL+"/cards/search", params=payload)
+        else:
+            re = http.get(url)
+    re.raise_for_status()
+    data = re.json()['data']
+
+    if re.json()['has_more']:
+        data = data + scryfall_search(payload, re.json()['next_page'])
+
+    return data
+
+
+
+def scryfall_get_prints(oracleid, order = "usd", direction ="desc"):
+    payload = {
+        'q': "oracleid:%s" % oracleid,
+        'order': order,
+        'dir': direction,
+        'unique': 'prints'
+    }
+    return scryfall_search(payload)
+
+
+def scryfall_image_download(url, dest):
+    if not os.path.exists(dest):
+        re = http.get(url, stream=True)
+        re.raise_for_status()
+        with open(dest, 'xb') as f:
+            re.raw.decode_content = True
+            shutil.copyfileobj(re.raw, f)
+    else:
+        print("Previous copy of the card found. Reusing it!")
