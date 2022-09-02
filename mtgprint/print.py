@@ -34,7 +34,6 @@ def fetch_card(unique_print):
                 filename = "%s - %s.png" %(filename, face_name)
                 dest = Path(dest_dir + clean(filename))
                 pathes.append(dest)
-                print(dest)
                 scryfall_image_download(url, dest) 
                 
         else:
