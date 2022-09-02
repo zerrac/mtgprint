@@ -8,11 +8,14 @@ Automaticaly cover imperfections on png from scryfall using adapted beziers curv
 
 ## Usage
 
-1. Clone this repo.
+1. Clone this repo and setup python env.
 
 ```bash
 git clone https://github.com/zerrac/mtgprint.git
 cd mtgprint
+virtualenv python-env
+source python-env/bin/activate
+pip install -r requirements.txt
 ```
 
 2. Prepare your decklist
