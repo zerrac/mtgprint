@@ -2,7 +2,7 @@
 
 Prepare a list of card to be printed as proxies on custom playing cards.
 
-Automaticaly select the best option between hundreds of prints available on scryafall API, based on image resolution and language.
+Automaticaly select the best option between hundreds of prints available on [Scryfall](https://scryfall.com/), based on image resolution and language.
 
 Automaticaly cover imperfections on png from scryfall using adapted beziers curves and add a border of appropriate color.
 
