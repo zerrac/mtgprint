@@ -5,6 +5,7 @@ from pathlib import Path
 from mtgprint.deck import parse_deckfile, select_best_candidate
 from mtgprint.print import fetch_card
 from mtgprint.images import add_borders, measure_blurriness, keep_blurry
+from mtgprint.scryfall import scryfall_named
 import shutil
 import os
 import cv2
@@ -25,11 +26,13 @@ if __name__ == '__main__':
 
     print("Loading deck list...")
     deck = parse_deckfile(args.decklist, args.preferred_lang)
+    print("Found %i cards and %i tokens in your deck." % (len(deck.cards), len(deck.tokens)))
+    
     
     print("Fetchings source images...")
-    for card in deck.cards:
+    for card in deck.cards + deck.tokens:
         card.pathes = fetch_card(card)
-        
+    
         blurriness = measure_blurriness(card.pathes[0])
         if blurriness < args.threshold and args.preferred_lang != 'en':
             print("Image %s seems blurry... " % card['name'], end="")
@@ -39,11 +42,11 @@ if __name__ == '__main__':
                 for path in card.pathes:
                     print('Using english version...')
                     os.remove(path)
-                card.card = select_best_candidate(card['name'], 'en')
+                card.card = select_best_candidate(scryfall_named(card['name']), 'en')
                 card.pathes = fetch_card(card)
-    
+
     print("Preparing for impression...")
-    for card in deck.cards:
+    for card in deck.cards + deck.tokens:
         for path in card.pathes:
             bordered = add_borders(path) 
             os.remove(path)

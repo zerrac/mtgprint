@@ -50,7 +50,7 @@ def add_borders(path, border_width = 36):
     img = Image.open(path)
     x,y = img.size
     pix = img.load()
-  except:
+  except FileNotFoundError:
     print(path)
     raise
   

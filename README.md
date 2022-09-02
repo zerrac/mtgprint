@@ -2,7 +2,11 @@
 
 Prepare a list of card to be printed as proxies on custom playing cards.
 
+## Fonctionalities
+
 Automaticaly select the best option between hundreds of prints available on [Scryfall](https://scryfall.com/), based on image resolution and language.
+
+Automaticaly fetch tokens associated with cards in your decklist with the same selection process than normal cards.
 
 Automaticaly cover imperfections on png from scryfall using adapted beziers curves and add a border of appropriate color.
 
@@ -73,6 +77,7 @@ Images are prioritized according to the following order:
 
 If several images obtain the same score, the one with the highest content-length will be selected (often the less blurry).
 
+As a last resort, if the automatically selected image is detected as too blurry, you will be prompted to choose between keeping the card or use an english version instead
 
 Here is the result : ![results](./docs/results.png)
 

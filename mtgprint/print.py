@@ -5,13 +5,14 @@ from PIL import Image, ImageOps, ImageDraw
 from os import listdir, remove
 from os.path import isfile, join
 
+
 def clean(filename):
     return  filename.replace(':', '_').replace('/', '_').replace('\x00', '_')
 
 def fetch_card(unique_print):
     try:
         card_name=unique_print['printed_name']
-    except:
+    except KeyError:
         card_name=unique_print['name']
         
     try:
@@ -23,7 +24,7 @@ def fetch_card(unique_print):
             for face in unique_print['card_faces']:
                 try:
                     face_name=face['printed_name']
-                except:
+                except KeyError:
                     face_name=face['name']
 
                 if (indice % 2) != 0:
@@ -42,7 +43,7 @@ def fetch_card(unique_print):
             pathes.append(dest)
             scryfall_image_download(url, dest)
 
-    except:
+    except KeyError:
         print(unique_print['uri'])
         raise
     

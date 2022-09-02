@@ -47,6 +47,12 @@ def scryfall_named(card_name: str):
             
         return re.json()
 
+def scryfall_get_card_by_id(id):
+    with rate_limiter:
+        re  = http.get(SCRYFALL_URL+"/cards/%s" % id)
+    re.raise_for_status()
+    return re.json()
+
 def scryfall_get_localized_card(set, collector_number, lang):
     with rate_limiter:
         re = http.get(SCRYFALL_URL+"/cards/%s/%s/%s" %(set,collector_number, lang))
@@ -101,3 +107,11 @@ def scryfall_get_face_url(image):
         return image['image_uris']['png']
     elif 'card_faces' in image:
         return  image['card_faces'][0]['image_uris']['png']
+    
+def scryfall_get_tokens(card):
+    token_ids=list()
+    if 'all_parts' in card:
+        for part in card['all_parts']:
+            if part['component'] == 'token':
+                token_ids.append(part['id'])
+    return token_ids
