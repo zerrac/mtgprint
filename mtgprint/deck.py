@@ -1,4 +1,4 @@
-from mtgprint.scryfall import scryfall_named, scryfall_get_prints, scryfall_get_localized_card
+from mtgprint.scryfall import scryfall_named, scryfall_get_prints, scryfall_get_localized_card, scryfall_image_getsize, scryfall_get_face_url
 from requests.exceptions import HTTPError
 
 class Card:
@@ -55,25 +55,37 @@ def parse_deckfile(filepath, preferred_lang='fr'):
             prints = scryfall_get_prints(card["oracle_id"])
                         
             count = 0
+
             best_score = 0
-            max_score = 22
+            best_content_length = 0
             for unique_print in prints:
                 count += 1
                 print("Scanning prints of %s (%i/%i)" % (card_name, count, len(prints) ), end='\r')
                 try:
                     localized_print = scryfall_get_localized_card(unique_print["set"],unique_print['collector_number'], preferred_lang)
                 except HTTPError as e:
+                    # 404 -> The print is not available in preferred language
                     localized_print = unique_print
                 except:
                     raise
+                
+                if localized_print["image_status"] == 'placeholder':
+                    # We dont want placeholders, better use english version
+                    localized_print = unique_print
+
                 print_score = evaluate_card_score(localized_print,preferred_lang)
-                if print_score > best_score or best_score == 0:
+                if print_score > best_score:
                     selected_print = localized_print
                     best_score = print_score
-                    
-                if best_score == max_score:
-                    break
-                
+
+                    selected_print_content_length = scryfall_image_getsize(scryfall_get_face_url(selected_print))
+
+                elif print_score ==  best_score:
+                    localized_print_content_length = scryfall_image_getsize(scryfall_get_face_url(localized_print))
+                    if localized_print_content_length > selected_print_content_length:
+                        selected_print = localized_print
+                        selected_print_content_length = localized_print_content_length
+
             print("Selected print for %s has a score of %i (localized in '%s' and with image quality '%s')" % (card_name, best_score, selected_print['lang'], selected_print['image_status'] )) 
             deck.add_card(selected_print, qty)
     if len(deck) == 0:

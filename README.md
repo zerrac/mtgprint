@@ -65,7 +65,7 @@ Images are prioritized according to the following order:
   - card localized in english + high res
   - card localized in english + low res
 
-If several images obtain the same score, the one with the highest USD price will be selected (because why not).
+If several images obtain the same score, the one with the highest content-length will be selected (often the less blurry).
 
 
 Here is the result : ![results](./docs/results.png)

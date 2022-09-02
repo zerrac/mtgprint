@@ -67,8 +67,6 @@ def scryfall_search(payload, url=None):
 
     return data
 
-
-
 def scryfall_get_prints(oracleid, order = "usd", direction ="desc"):
     payload = {
         'q': "oracleid:%s" % oracleid,
@@ -78,13 +76,28 @@ def scryfall_get_prints(oracleid, order = "usd", direction ="desc"):
     }
     return scryfall_search(payload)
 
-
 def scryfall_image_download(url, dest):
     if not os.path.exists(dest):
-        re = http.get(url, stream=True)
+        with rate_limiter:
+            re = http.get(url, stream=True)
         re.raise_for_status()
         with open(dest, 'xb') as f:
             re.raw.decode_content = True
             shutil.copyfileobj(re.raw, f)
     else:
         print("Previous copy of the card found. Reusing it!")
+
+def scryfall_image_getsize(url):
+    with rate_limiter:
+        re =  http.head(url)
+    re.raise_for_status()
+    if 'Content-Length' in re.headers.keys():
+        return int(re.headers['Content-Length'])
+    else: 
+        return 0
+
+def scryfall_get_face_url(image):
+    if 'image_uris' in image:
+        return image['image_uris']['png']
+    elif 'card_faces' in image:
+        return  image['card_faces'][0]['image_uris']['png']
