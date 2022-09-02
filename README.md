@@ -40,7 +40,7 @@ Example :
 
 ```bash
 python3 mtgprint.py --help
-usage: mtgprint.py [-h] [--decklist DECKLIST] [--language PREFERRED_LANG]
+usage: mtgprint.py [-h] [--decklist DECKLIST] [--language PREFERRED_LANG] [--threshold THRESHOLD]
 
 Prepare decks for printing as proxies.
 
@@ -49,6 +49,9 @@ optional arguments:
   --decklist DECKLIST   load deck list from a file (default : decklist.txt)
   --language PREFERRED_LANG, -l PREFERRED_LANG
                         Card prints localized in specified language will be prioritized. Please use ISO code. (default : fr)
+  --threshold THRESHOLD, -t THRESHOLD
+                        Threshold for blurriness detection. For image that does not reach this treshold you will be proposed to use english version of
+                        the card instead.
 ```
 
 Exemple :
