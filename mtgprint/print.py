@@ -31,8 +31,8 @@ def fetch_card(unique_print):
                 indice += 1  
 
                 url = face['image_uris']['png']
-                filename = "%s - %s.png" %(filename, face_name)
-                dest = Path(dest_dir + clean(filename))
+                face_filename = "%s - %s.png" %(filename, face_name)
+                dest = Path(dest_dir + clean(face_filename))
                 pathes.append(dest)
                 scryfall_image_download(url, dest) 
                 
