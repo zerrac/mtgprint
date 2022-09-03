@@ -26,12 +26,12 @@ if __name__ == '__main__':
 
     print("Loading deck list...")
     deck = parse_deckfile(args.decklist, args.preferred_lang)
-    print("Found %i cards and %i tokens in your deck." % (len(deck.cards), len(deck.tokens)))
+    print("Found %i cards and %i tokens in your deck." % (deck.count_cards(), deck.count_tokens()))
     
     
     print("Fetchings source images...")
     for card in deck.cards + deck.tokens:
-        card.pathes = fetch_card(card)
+        card.pathes = fetch_card(card, deck.name)
     
         blurriness = measure_blurriness(card.pathes[0])
         if blurriness < args.threshold and args.preferred_lang != 'en':
@@ -43,7 +43,7 @@ if __name__ == '__main__':
                     print('Using english version...')
                     os.remove(path)
                 card.card = select_best_candidate(scryfall_named(card['name']), 'en')
-                card.pathes = fetch_card(card)
+                card.pathes = fetch_card(card, deck.name)
 
     print("Preparing for impression...")
     for card in deck.cards + deck.tokens:

@@ -1,5 +1,5 @@
 import mtgprint.scryfall as scryfall
-
+from pathlib import Path
 from requests.exceptions import HTTPError
 
 class Card:
@@ -13,9 +13,12 @@ class Card:
     def __contains__(self, key):
         return key in self.card
     
-
+    
+    def select_best_candidate(self, preferred_lang='fr'):
+        self.card = select_best_candidate(self.card, preferred_lang)
 class Deck:
-    def __init__(self):
+    def __init__(self,deck_name):
+        self.name = deck_name
         self.cards=list()
         self.tokens=list()
         self.len = 0
@@ -23,15 +26,31 @@ class Deck:
     def __len__(self):
         return self.len
     
+    def count_cards(self):
+        return sum([card.qty for card in self.cards])
+
+    def count_tokens(self):
+        return sum([token.qty for token in self.tokens])
+    
     def add_card(self, card, qty):
         card = Card(qty, card)
         self.len += qty
         self.cards.append(card)
-        
+
+    def has_token(self, token_name):
+        i = next((i for i, token in enumerate(self.tokens) if token['name'] == token_name), -1)
+        return i >= 0, i
+
     def add_token(self, token, qty=1):
-        token = Card(qty, token)
+        
         self.len += qty
-        self.tokens.append(token)          
+        has_token, token_indice = self.has_token(token['name'])
+
+        if has_token:
+            self.tokens[token_indice].qty += qty
+        else:
+            token = Card(qty, token)
+            self.tokens.append(token)     
 
 def evaluate_card_score(card, preferred_lang="fr"):
     score = 0    
@@ -86,8 +105,9 @@ def select_best_candidate(card, preferred_lang='fr'):
 
 
 def parse_deckfile(filepath, preferred_lang='fr'):
-    deck = Deck()
-    with open(filepath, "r", encoding="utf-8") as f:
+    file = Path(filepath)
+    deck = Deck(file.stem)
+    with open(file, "r", encoding="utf-8") as f:
         for x in f:
             qty = int(x.split(' ')[0].strip())
             card_name = " ".join(x.split(' ')[1:]).strip()
@@ -103,8 +123,10 @@ def parse_deckfile(filepath, preferred_lang='fr'):
             token_ids = scryfall.scryfall_get_tokens(card)
             for token_id in token_ids:
                 token = scryfall.scryfall_get_card_by_id(token_id)
-                deck.add_token(select_best_candidate(token, preferred_lang))
-
+                deck.add_token(token)
+        for token in deck.tokens:
+            token.select_best_candidate(preferred_lang)
+            
     if len(deck) == 0:
         raise BaseException("No cards have been found in your deck list")
     return deck
