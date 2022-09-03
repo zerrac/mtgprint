@@ -34,9 +34,9 @@ def fetch_card(unique_print, deck_name='deckname'):
                 face_filename = "%s - %s.png" %(filename, face_name)
 
                 if (indice % 2) != 0:
-                    dest = Path(dest_back + clean(face_filename))
+                    dest = Path(dest_back, clean(face_filename))
                 else:
-                    dest = Path(dest_front + clean(face_filename))
+                    dest = Path(dest_front, clean(face_filename))
                 indice += 1  
 
                 url = face['image_uris']['png']
