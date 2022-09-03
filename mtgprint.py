@@ -15,12 +15,15 @@ if __name__ == '__main__':
     parser.add_argument('--decklist', default="decklist.txt",
                         dest="decklist",
                         help='load deck list from a file (default : decklist.txt)')
-    parser.add_argument('--language', '-l', default="fr",
+    parser.add_argument('--language', '-l', default="fr", type=str,
                         dest="preferred_lang",
                         help='Card prints localized in specified language will be prioritized. Please use ISO code. (default : fr)')
     parser.add_argument('--threshold', '-t', default="100", type=float,
                         dest="threshold",
                         help='Threshold for blurriness detection. For image that does not reach this treshold you will be proposed to use english version of the card instead.')
+    parser.add_argument('--deckname', type=str,
+                        dest="deckname",
+                        help='Name of the deck aka name of the folder where the deck will be printed. (default: decklist file name without extension')
 
     args = parser.parse_args()
 
@@ -28,7 +31,9 @@ if __name__ == '__main__':
     deck = parse_deckfile(args.decklist, args.preferred_lang)
     print("Found %i cards and %i tokens in your deck." % (deck.count_cards(), deck.count_tokens()))
     
-    
+    if args.deckname:
+        deck.name = args.deckname
+        
     print("Fetchings source images...")
     for card in deck.cards + deck.tokens:
         card.pathes = fetch_card(card, deck.name)
