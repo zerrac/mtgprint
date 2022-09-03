@@ -135,6 +135,6 @@ def keep_blurry(card):
     cv2.imshow(text,image)
     
     # waiting using waitKey method
-    key = cv2.waitKey(60000)
+    key = cv2.waitKey(30000)
     cv2.destroyAllWindows()
     return key == ord('k')
