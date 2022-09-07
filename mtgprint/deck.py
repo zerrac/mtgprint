@@ -55,11 +55,16 @@ class Deck:
 def evaluate_card_score(card, preferred_lang="fr"):
     score = 0    
     if card["lang"] == preferred_lang:
-        score += 20
+        score += 200
     elif card["lang"] == 'en':
+        score += 100
+
+    if card["collector_number"].isnumeric() and card["nonfoil"]:
+        score += 20
+    
+    if card['frame'] == '2015':
         score += 10
-
-
+        
     if card["image_status"] == 'highres_scan':
         score += 2
     elif card["image_status"] == 'lowres':
@@ -78,15 +83,18 @@ def select_best_candidate(card, preferred_lang='fr'):
     for unique_print in prints:
         count += 1
         print("Scanning prints of %s (%i/%i)" % (card['name'], count, len(prints) ), end='\r')
-        try:
-            localized_print = scryfall.scryfall_get_localized_card(unique_print["set"],unique_print['collector_number'], preferred_lang)
-        except HTTPError:
-            # 404 -> The print is not available in preferred language
+        if unique_print['lang'] != preferred_lang:
+            try:
+                localized_print = scryfall.scryfall_get_localized_card(unique_print["set"],unique_print['collector_number'], preferred_lang)
+            except HTTPError:
+                # 404 -> The print is not available in preferred language
+                localized_print = unique_print
+        else:
             localized_print = unique_print
 
         if localized_print["image_status"] == 'placeholder':
             # We dont want placeholders, better use english version
-            localized_print = unique_print
+            localized_print = card
 
         print_score = evaluate_card_score(localized_print,preferred_lang)
         if print_score > best_score:
