@@ -73,7 +73,7 @@ def scryfall_search(payload, url=None):
 
     return data
 
-def scryfall_get_prints(oracleid, order = "usd", direction ="desc"):
+def scryfall_get_prints(oracleid, order = "released", direction ="desc"):
     payload = {
         'q': "oracleid:%s" % oracleid,
         'order': order,
