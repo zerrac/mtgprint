@@ -15,15 +15,18 @@ if __name__ == '__main__':
     parser.add_argument('--decklist', default="decklist.txt",
                         dest="decklist",
                         help='load deck list from a file (default : decklist.txt)')
-    parser.add_argument('--language', '-l', default="fr", type=str,
-                        dest="preferred_lang",
-                        help='Card prints localized in specified language will be prioritized. Please use ISO code. (default : fr)')
-    parser.add_argument('--threshold', '-t', default="100", type=float,
-                        dest="threshold",
-                        help='Threshold for blurriness detection. For image that does not reach this treshold you will be proposed to use english version of the card instead.')
     parser.add_argument('--deckname', type=str,
                         dest="deckname",
                         help='Name of the deck aka name of the folder where the deck will be printed. (default: decklist file name without extension')
+    parser.add_argument('--language', '-l', default="fr", type=str,
+                        dest="preferred_lang",
+                        help='Card prints localized in specified language will be prioritized. Please use ISO code. (default : fr)')
+    parser.add_argument('--threshold', '-t', default="300", type=float,
+                        dest="threshold",
+                        help='Threshold for blurriness detection. For image that does not reach this treshold you will be proposed to use english version of the card instead.')
+    parser.add_argument('--dontKeepBlurry', default=True,
+                        dest="dontkeepblurry", action='store_false',
+                        help='Always use english version when the translated version is bellow blurriness treshold')
 
     args = parser.parse_args()
 
@@ -41,7 +44,7 @@ if __name__ == '__main__':
         blurriness = measure_blurriness(card.pathes[0])
         if blurriness < args.threshold and args.preferred_lang != 'en':
             print("Image %s seems blurry... " % card['name'], end="")
-            if keep_blurry(card):
+            if args.dontkeepblurry and keep_blurry(card):
                 print('keeping blurry card...')
             else:
                 for path in card.pathes:
