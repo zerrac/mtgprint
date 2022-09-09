@@ -35,8 +35,7 @@ http.mount('http://', HTTPAdapter(max_retries=retries))
 http.mount('https://', HTTPAdapter(max_retries=retries))
 
 
-
-def scryfall_named(card_name: str):
+def named(card_name: str):
         payload = {
             'exact': card_name,       
         }
@@ -47,19 +46,19 @@ def scryfall_named(card_name: str):
             
         return re.json()
 
-def scryfall_get_card_by_id(id):
+def get_card_by_id(id):
     with rate_limiter:
         re  = http.get(SCRYFALL_URL+"/cards/%s" % id)
     re.raise_for_status()
     return re.json()
 
-def scryfall_get_localized_card(set, collector_number, lang):
+def get_localized_card(set, collector_number, lang):
     with rate_limiter:
         re = http.get(SCRYFALL_URL+"/cards/%s/%s/%s" %(set,collector_number, lang))
     re.raise_for_status()
     return re.json()
 
-def scryfall_search(payload, url=None):
+def search(payload, url=None):
     with rate_limiter:
         if url == None:
             re = http.get(SCRYFALL_URL+"/cards/search", params=payload)
@@ -69,20 +68,20 @@ def scryfall_search(payload, url=None):
     data = re.json()['data']
 
     if re.json()['has_more']:
-        data = data + scryfall_search(payload, re.json()['next_page'])
+        data = data + search(payload, re.json()['next_page'])
 
     return data
 
-def scryfall_get_prints(oracleid, order = "released", direction ="desc"):
+def get_prints(oracleid, order = "released", direction ="desc"):
     payload = {
         'q': "oracleid:%s" % oracleid,
         'order': order,
         'dir': direction,
         'unique': 'prints'
     }
-    return scryfall_search(payload)
+    return search(payload)
 
-def scryfall_image_download(url, dest):
+def download(url, dest):
     if not os.path.exists(dest):
         with rate_limiter:
             re = http.get(url, stream=True)
@@ -93,7 +92,7 @@ def scryfall_image_download(url, dest):
     else:
         print("Previous copy of the card found. Reusing it!")
 
-def scryfall_image_getsize(url):
+def image_getsize(url):
     with rate_limiter:
         re =  http.head(url)
     re.raise_for_status()
@@ -102,13 +101,13 @@ def scryfall_image_getsize(url):
     else: 
         return 0
 
-def scryfall_get_face_url(image):
+def get_face_url(image):
     if 'image_uris' in image:
         return image['image_uris']['png']
     elif 'card_faces' in image:
         return  image['card_faces'][0]['image_uris']['png']
     
-def scryfall_get_tokens(card):
+def get_tokens(card):
     token_ids=list()
     if 'all_parts' in card:
         for part in card['all_parts']:

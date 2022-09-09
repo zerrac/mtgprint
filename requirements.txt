@@ -1,3 +1,5 @@
 requests
 pillow
 opencv-python
+numpy
+scikit-image

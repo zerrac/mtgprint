@@ -1,4 +1,4 @@
-from mtgprint.scryfall import scryfall_image_download
+import mtgprint.scryfall as scryfall
 import shutil
 from pathlib import Path
 from PIL import Image, ImageOps, ImageDraw
@@ -41,13 +41,13 @@ def fetch_card(unique_print, deck_name='deckname'):
 
                 url = face['image_uris']['png']
                 pathes.append(dest)
-                scryfall_image_download(url, dest) 
+                scryfall.download(url, dest) 
                 
         else:
             url = unique_print['image_uris']['png']
             dest = Path(dest_front, clean(filename+'.png'))
             pathes.append(dest)
-            scryfall_image_download(url, dest)
+            scryfall.download(url, dest)
 
     except KeyError:
         print(unique_print['uri'])

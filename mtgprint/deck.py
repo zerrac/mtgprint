@@ -74,7 +74,7 @@ def evaluate_card_score(card, preferred_lang="fr"):
 
 def select_best_candidate(card, preferred_lang='fr'):
     
-    prints = scryfall.scryfall_get_prints(card["oracle_id"])
+    prints = scryfall.get_prints(card["oracle_id"])
                 
     count = 0
 
@@ -85,7 +85,7 @@ def select_best_candidate(card, preferred_lang='fr'):
         print("Scanning prints of %s (%i/%i)" % (card['name'], count, len(prints) ), end='\r')
         if unique_print['lang'] != preferred_lang:
             try:
-                localized_print = scryfall.scryfall_get_localized_card(unique_print["set"],unique_print['collector_number'], preferred_lang)
+                localized_print = scryfall.get_localized_card(unique_print["set"],unique_print['collector_number'], preferred_lang)
             except HTTPError:
                 # 404 -> The print is not available in preferred language
                 localized_print = unique_print
@@ -101,10 +101,10 @@ def select_best_candidate(card, preferred_lang='fr'):
             selected_print = localized_print
             best_score = print_score
 
-            selected_print_content_length = scryfall.scryfall_image_getsize(scryfall.scryfall_get_face_url(selected_print))
+            selected_print_content_length = scryfall.image_getsize(scryfall.get_face_url(selected_print))
 
         elif print_score ==  best_score:
-            localized_print_content_length = scryfall.scryfall_image_getsize(scryfall.scryfall_get_face_url(localized_print))
+            localized_print_content_length = scryfall.image_getsize(scryfall.get_face_url(localized_print))
             if localized_print_content_length > selected_print_content_length:
                 selected_print = localized_print
                 selected_print_content_length = localized_print_content_length
@@ -120,7 +120,7 @@ def parse_deckfile(filepath, preferred_lang='fr'):
             qty = int(x.split(' ')[0].strip())
             card_name = " ".join(x.split(' ')[1:]).strip()
             try:
-                card = scryfall.scryfall_named(card_name)
+                card = scryfall.named(card_name)
             except HTTPError:
                 print("Card %s not found, skipping..." % card_name)
                 continue
@@ -128,9 +128,9 @@ def parse_deckfile(filepath, preferred_lang='fr'):
             selected_print = select_best_candidate(card, preferred_lang)
             deck.add_card(selected_print, qty)
             
-            token_ids = scryfall.scryfall_get_tokens(card)
+            token_ids = scryfall.get_tokens(card)
             for token_id in token_ids:
-                token = scryfall.scryfall_get_card_by_id(token_id)
+                token = scryfall.get_card_by_id(token_id)
                 deck.add_token(token)
         for token in deck.tokens:
             token.select_best_candidate(preferred_lang)

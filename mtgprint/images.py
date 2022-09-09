@@ -3,7 +3,6 @@ from pathlib import Path
 from PIL import Image, ImageOps, ImageDraw
 from os import listdir, remove
 from os.path import isfile, join
-
 import cv2
 
 def _pascal_row(n, memo={}):
@@ -45,6 +44,10 @@ def _make_bezier(xys):
     return bezier
 
 
+def set_dpi(path, dpi = 300):
+    img = Image.open(path)
+    img.save(path, dpi=(dpi,dpi))
+    
 def add_borders(path, border_width = 36):
   try:
     img = Image.open(path)

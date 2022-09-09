@@ -4,8 +4,8 @@ import argparse
 from pathlib import Path
 from mtgprint.deck import parse_deckfile, select_best_candidate
 from mtgprint.print import fetch_card
-from mtgprint.images import add_borders, measure_blurriness, keep_blurry
-from mtgprint.scryfall import scryfall_named
+from mtgprint.images import add_borders, measure_blurriness, keep_blurry, set_dpi
+import mtgprint.scryfall as scryfall
 import shutil
 import os
 import cv2
@@ -50,12 +50,13 @@ if __name__ == '__main__':
                 for path in card.pathes:
                     print('Using english version...')
                     os.remove(path)
-                card.card = select_best_candidate(scryfall_named(card['name']), 'en')
+                card.card = select_best_candidate(scryfall.named(card['name']), 'en')
                 card.pathes = fetch_card(card, deck.name)
 
     print("Preparing for impression...")
     for card in deck.cards + deck.tokens:
         for path in card.pathes:
+            set_dpi(path, 300)
             bordered = add_borders(path) 
             os.remove(path)
             if card.qty>1:
