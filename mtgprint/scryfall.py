@@ -83,12 +83,17 @@ def get_prints(oracleid, order = "released", direction ="desc"):
 
 def download(url, dest):
     if not os.path.exists(dest):
-        with rate_limiter:
-            re = http.get(url, stream=True)
-        re.raise_for_status()
-        with open(dest, 'xb') as f:
-            re.raw.decode_content = True
-            shutil.copyfileobj(re.raw, f)
+        try:
+            with rate_limiter:
+                re = http.get(url, stream=True)
+            re.raise_for_status()
+
+            with open(dest, 'xb') as f:
+                re.raw.decode_content = True
+                shutil.copyfileobj(re.raw, f)
+        except:
+            os.remove(dest)
+            raise
     else:
         print("Previous copy of the card found. Reusing it!")
 
