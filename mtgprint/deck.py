@@ -54,16 +54,23 @@ class Deck:
 
 def evaluate_card_score(card, preferred_lang="fr"):
     score = 0    
-    if card["lang"] == preferred_lang:
+    if card["lang"] == preferred_lang or card['type_line'].lower().startswith('basic land'):
         score += 200
     elif card["lang"] == 'en':
         score += 100
+        
 
-    if card["collector_number"].isnumeric() and card["nonfoil"]:
-        score += 20
-    
+    # if card['type_line'].lower().startswith('basic land') and card['set'] == 'thb' and card['full_art']:
+    #     scord =+ 40
+
     if card['frame'] == '2015':
+        score += 40
+
+    if card["collector_number"].isnumeric():
         score += 10
+
+    if card['set'] != 'sld':    
+        score += 10 
         
     if card["image_status"] == 'highres_scan':
         score += 2
@@ -117,6 +124,8 @@ def parse_deckfile(filepath, preferred_lang='fr'):
     deck = Deck(file.stem)
     with open(file, "r", encoding="utf-8") as f:
         for x in f:
+            if x.startswith("MAINBOARD") or x.startswith("SIDEBOARD"):
+                continue
             qty = int(x.split(' ')[0].strip())
             card_name = " ".join(x.split(' ')[1:]).strip()
             try:

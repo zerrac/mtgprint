@@ -96,10 +96,7 @@ def add_borders(path, border_width = 36):
     border=border_width,
     fill=color
   )
-  dest = Path(path.parents[0], "bordered-" + path.name)
-  img_with_border.save(dest)
-  
-  return dest
+  img_with_border.save(path)
 
 
 def _variance_of_laplacian(image):
