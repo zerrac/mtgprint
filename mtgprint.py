@@ -54,14 +54,17 @@ if __name__ == '__main__':
                 card.pathes = fetch_card(card, deck.name)
 
     print("Preparing for impression...")
+    counter=0
     for card in deck.cards + deck.tokens:
+        counter += 1
         for path in card.pathes:
             set_dpi(path, 300)
-            bordered = add_borders(path) 
-            os.remove(path)
-            if card.qty>1:
-                for i in range(card.qty - 1):
-                    copy_name = "%s - %i%s"% (bordered.stem, i+2, ''.join(bordered.suffixes))
-                    copy = Path(bordered.parents[0], copy_name)
-                    shutil.copy(bordered, copy)
+            add_borders(path)
+            bordered = Path(path.parents[0], "%02d-bordered-%s" % (counter, path.name))
+            os.rename(path, bordered)
+            # if card.qty>1:
+            #     for i in range(card.qty - 1):
+            #         copy_name = "%s - %i%s"% (bordered.stem, i+2, ''.join(bordered.suffixes))
+            #         copy = Path(bordered.parents[0], copy_name)
+            #         shutil.copy(bordered, copy)
 
