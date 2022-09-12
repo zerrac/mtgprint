@@ -9,6 +9,11 @@ import mtgprint.scryfall as scryfall
 import shutil
 import os
 import cv2
+def print_action(action: str):
+    GREEN = '\033[92m'
+    ENDC = '\033[0m'
+    print(GREEN + action + ENDC)
+    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Prepare decks for printing as proxies.')
@@ -30,14 +35,14 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    print("Loading deck list...")
+    print_action("Loading deck list...")
     deck = parse_deckfile(args.decklist, args.preferred_lang)
     print("Found %i cards and %i tokens in your deck." % (deck.count_cards(), deck.count_tokens()))
-    
+
     if args.deckname:
         deck.name = args.deckname
         
-    print("Fetchings source images...")
+    print_action("Fetchings source images...")
     for card in deck.cards + deck.tokens:
         card.pathes = fetch_card(card, deck.name)
     
@@ -53,7 +58,7 @@ if __name__ == '__main__':
                 card.card = select_best_candidate(scryfall.named(card['name']), 'en')
                 card.pathes = fetch_card(card, deck.name)
 
-    print("Preparing for impression...")
+    print_action("Preparing for impression...")
     counter=0
     for card in deck.cards + deck.tokens:
         counter += 1
@@ -68,3 +73,4 @@ if __name__ == '__main__':
             #         copy = Path(bordered.parents[0], copy_name)
             #         shutil.copy(bordered, copy)
 
+print_action("Deck '%s' is ready for printing !" % deck.name)
