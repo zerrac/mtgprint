@@ -72,9 +72,13 @@ def search(payload, url=None):
 
     return data
 
-def get_prints(oracleid, order = "released", direction ="desc"):
+def get_prints(oracleid, order = "released", direction ="desc", set_filter=""):
+    query = "oracleid:%s" % oracleid
+    if set_filter != "":
+        query += " set:%s" % set_filter    
+        
     payload = {
-        'q': "oracleid:%s" % oracleid,
+        'q': query,
         'order': order,
         'dir': direction,
         'unique': 'prints'
