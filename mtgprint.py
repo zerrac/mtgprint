@@ -13,7 +13,8 @@ import cv2
 
 def colored_print(string: str, color):
     ENDC = '\033[0m'
-    print(color + string + ENDC)
+    BOLD = '\033[1m'
+    print(color + BOLD + string + ENDC)
 
 def print_header(string: str):
     HEADER = '\033[95m'
