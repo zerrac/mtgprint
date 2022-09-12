@@ -9,11 +9,19 @@ import mtgprint.scryfall as scryfall
 import shutil
 import os
 import cv2
-def print_action(action: str):
-    GREEN = '\033[92m'
+
+
+def colored_print(string: str, color):
     ENDC = '\033[0m'
-    print(GREEN + action + ENDC)
-    
+    print(color + string + ENDC)
+
+def print_header(string: str):
+    HEADER = '\033[95m'
+    colored_print(string,HEADER)
+
+def print_ok(string: str):
+    OK = '\033[92m'
+    colored_print(string, OK)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Prepare decks for printing as proxies.')
@@ -35,14 +43,14 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    print_action("Loading deck list...")
+    print_header("Loading deck list...")
     deck = parse_deckfile(args.decklist, args.preferred_lang)
     print("Found %i cards and %i tokens in your deck." % (deck.count_cards(), deck.count_tokens()))
 
     if args.deckname:
         deck.name = args.deckname
         
-    print_action("Fetchings source images...")
+    print_header("Fetchings source images...")
     for card in deck.cards + deck.tokens:
         card.pathes = fetch_card(card, deck.name)
     
@@ -58,7 +66,7 @@ if __name__ == '__main__':
                 card.card = select_best_candidate(scryfall.named(card['name']), 'en')
                 card.pathes = fetch_card(card, deck.name)
 
-    print_action("Preparing for impression...")
+    print_header("Preparing for impression...")
     counter=0
     for card in deck.cards + deck.tokens:
         counter += 1
@@ -73,4 +81,4 @@ if __name__ == '__main__':
             #         copy = Path(bordered.parents[0], copy_name)
             #         shutil.copy(bordered, copy)
 
-print_action("Deck '%s' is ready for printing !" % deck.name)
+print_ok("Deck '%s' is ready for printing !" % deck.name)
