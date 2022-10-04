@@ -49,8 +49,8 @@ if __name__ == '__main__':
     template = read_transparent_png(args.template)
     
 
-    if not os.path.exists(args.template):
-        raise BaseException("Cant find 'not for sale' cover at %s" % args.notfirsale)
+    if not os.path.exists(args.notforsale):
+        raise BaseException("Cant find 'not for sale' cover at %s" % args.notforsale)
     
     PILtemplate = Image.open(args.template)
     width, height = PILtemplate.size
@@ -74,7 +74,6 @@ if __name__ == '__main__':
         # width = 300
         # height = 30
         PILimage = Image.open(file)
-        
         ## DETECT MEAN COLOR FOR THE ZONE TO COVER
         im_crop = PILimage.crop((x, y+height, x+width, y+height+1))
         avg_color_per_row = np.average(im_crop, axis=0)
@@ -93,3 +92,4 @@ if __name__ == '__main__':
         dest = Path(file.parents[0], "altered-" + file.name)
         print(dest)
         PILimage.save(dest)
+
