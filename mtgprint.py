@@ -46,7 +46,6 @@ if __name__ == '__main__':
 
     print_header("Loading deck list...")
     deck = parse_deckfile(args.decklist, args.preferred_lang)
-    print("Found %i cards and %i tokens in your deck." % (deck.count_cards(), deck.count_tokens()))
 
     if args.deckname:
         deck.name = args.deckname
@@ -64,7 +63,8 @@ if __name__ == '__main__':
                 for path in card.pathes:
                     print('Using english version...')
                     os.remove(path)
-                card.card = select_best_candidate(scryfall.named(card['name']), 'en')
+                card.preferred_lang = 'en'
+                card.select_best_candidate()
                 card.pathes = fetch_card(card, deck.name)
 
     print_header("Preparing for impression...")
@@ -83,3 +83,5 @@ if __name__ == '__main__':
             #         shutil.copy(bordered, copy)
 
 print_ok("Deck '%s' is ready for printing !" % deck.name)
+
+print(deck)
