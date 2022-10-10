@@ -31,7 +31,6 @@ Syntax is basic, each line is composed of `<quantity> <card name>` where :
 - `<card name>` is the exact english card name to search for, case insenstive. 
 
 The validation is very naive : Everything before the first space is considered as `<quantity>` and everything else is considered as `<card name>`.
-No empty lines allowed. 
 
 Example :
 ```
@@ -56,6 +55,7 @@ optional arguments:
   --threshold THRESHOLD, -t THRESHOLD
                         Threshold for blurriness detection. For image that does not reach this treshold you will be proposed to use english version of
                         the card instead.
+  --dontKeepBlurry      Always use english version when the translated version is bellow blurriness treshold
 ```
 
 Exemple :
@@ -77,9 +77,27 @@ Images are prioritized according to the following order:
 
 If several images obtain the same score, the one with the highest content-length will be selected (often the less blurry).
 
-As a last resort, if the automatically selected image is detected as too blurry, you will be prompted to choose between keeping the card or use an english version instead
+As a last resort, if the automatically selected image is detected as too blurry, you will be prompted to choose between keeping the card or use an english version instead.
 
 Here is the result : ![results](./docs/results.png)
+
+## Additional tools
+
+### Cover trademark
+This tool tries his best to automaticaly detect trademark position and cover it with a patch of appropriate color and the "not for sale" mention.
+
+```bash
+_$ python3 tools/cover_trademark.py <path to deck output folder>
+```
+
+Carrefuly check the result as the trademark detection work very well with post-2015 card art but can sometime fail for older cards.
+
+### Set DPI
+Images downloaded from scryfall are usually in 72DPI. The tools just change DPI to 300 for every file in a given folder
+
+```bash
+_$ python3 tools/set_dpi.py <path to deck output folder>
+```
 
 
 ## Acknowledgements
