@@ -29,6 +29,13 @@ def read_transparent_png(filename):
     final_image = base + white
     return final_image.astype(np.uint8)
 
+def detect_trademark(template, image):
+    image_gray = rgb2gray(image)
+    template_gray = rgb2gray(template)
+    result = match_template(image_gray, template_gray)
+    ij = np.unravel_index(np.argmax(result), result.shape)    
+    return ij[::-1] # TRADEMARK POS
+
 
 if __name__ == '__main__':
 
@@ -47,13 +54,14 @@ if __name__ == '__main__':
     if not os.path.exists(args.template):
         raise BaseException("Cant find template %s" % args.template)
     template = read_transparent_png(args.template)
-    
+    PILtemplate = Image.open(args.template)
 
+    template_alt = read_transparent_png(os.path.dirname(__file__)+"/resources/tradmark_alt.png")
+    PILtemplate_alt = Image.open(os.path.dirname(__file__)+"/resources/tradmark_alt.png")  
+      
     if not os.path.exists(args.notforsale):
         raise BaseException("Cant find 'not for sale' cover at %s" % args.notforsale)
     
-    PILtemplate = Image.open(args.template)
-    width, height = PILtemplate.size
     not_for_sale = Image.open(args.notforsale)
 
     for file in [x for x in Path(args.images_folder).iterdir() if x.is_file()]:
@@ -61,19 +69,26 @@ if __name__ == '__main__':
         if file.name.startswith('altered-') :
             continue
 
-        
+        PILimage = Image.open(file)
+  
         ## DETECT TRADEMARK POSITION
         image = read_transparent_png(str(file))
-        image_gray = rgb2gray(image)
-        template_gray = rgb2gray(template)
-        result = match_template(image_gray, template_gray)
-        ij = np.unravel_index(np.argmax(result), result.shape)    
-        x, y = ij[::-1] # TRADEMARK POS
+        x, y = detect_trademark(template, image)
 
-        #Dimension of the cover
-        # width = 300
-        # height = 30
-        PILimage = Image.open(file)
+        width, height = PILtemplate.size
+
+        
+        
+        if y < (PILimage.height / 4) * 3:
+            """
+            Le trademark detecté n'est pas dans le quart inférieur de l'image, c'est signe d'un probème
+            la detéction n'a probablement pas marché car la carte est dans un format ancien
+            on essaie avec un autre template de trademark plus adapté aux cartes anciennes
+            """
+            x, y = detect_trademark(template_alt, image)
+            width, height = PILtemplate_alt.size
+
+
         ## DETECT MEAN COLOR FOR THE ZONE TO COVER
         im_crop = PILimage.crop((x, y+height, x+width, y+height+1))
         avg_color_per_row = np.average(im_crop, axis=0)
@@ -81,12 +96,11 @@ if __name__ == '__main__':
         color = tuple([int(color) for color in tuple(avg_color)[:-1]])
 
         #CREATE THE COVER FOR THE ZONE
-        base_cache = Image.new('RGBA', PILtemplate.size, color = color)
-        
+        base_cache = Image.new('RGBA', not_for_sale.size, color = color)
         # ADD "not_for_sale.png"
         base_cache = Image.alpha_composite(base_cache, not_for_sale)
         
-        PILimage.paste(base_cache, (x, y))
+        PILimage.paste(base_cache, (x, y-1))
 
 
         dest = Path(file.parents[0], "altered-" + file.name)
