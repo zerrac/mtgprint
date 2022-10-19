@@ -24,7 +24,7 @@ def fetch_card(unique_print, deck_name='deckname'):
         dest_back = Path(base_dir, 'back')
         dest_back.mkdir(parents=True, exist_ok=True)
         
-        if 'card_faces' in unique_print:
+        if 'card_faces' in unique_print and not unique_print['layout'] == 'split':
             indice=0
             for face in unique_print['card_faces']:
                 try:
