@@ -109,7 +109,7 @@ def evaluate_card_score(card, preferred_lang="fr"):
     if card["collector_number"].isnumeric():
         score += 80
 
-    if  card['type_line'].lower().startswith('basic land') and card['full_art']:
+    if  'type_line' in card and card['type_line'].lower().startswith('basic land') and card['full_art']:
         score += 50
 
     if card['frame'] == '2015':
