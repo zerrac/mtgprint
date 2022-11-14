@@ -48,7 +48,7 @@ def set_dpi(path, dpi = 300):
     img = Image.open(path)
     img.save(path, dpi=(dpi,dpi))
     
-def add_borders(path, border_width = 36):
+def add_borders(path, dest, border_width = 36):
   try:
     img = Image.open(path)
     x,y = img.size
@@ -96,45 +96,17 @@ def add_borders(path, border_width = 36):
     border=border_width,
     fill=color
   )
-  img_with_border.save(path)
+  img_with_border.save(dest)
 
 
-def _variance_of_laplacian(image):
-	# compute the Laplacian of the image and then return the focus
-	# measure, which is simply the variance of the Laplacian
-	return cv2.Laplacian(image, cv2.CV_64F).var()
-
-
-def measure_blurriness(image_path):
-    image = cv2.imread(str(image_path))
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    return _variance_of_laplacian(gray)
-
-
-def keep_blurry(card):
-    # show the image
-    image = cv2.imread(str(card.pathes[0]))
-    def get_optimal_font_scale(text, width):
-
-        for scale in reversed(range(0, 60, 1)):
-            textSize = cv2.getTextSize(text, fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=scale/10, thickness=1)
-            new_width = textSize[0][0]
-            if (new_width <= width):
-                return scale/10
-        return 1
-
-    text = "Press k to keep image or any other key to use english version instead"
-    org = (10,30)
-    font = cv2.FONT_HERSHEY_DUPLEX
-    color = (0, 0, 255)
-    thickness = 1
-    fontScale = 3*(image.shape[1]//6)
-    font_size = get_optimal_font_scale(text, fontScale)
-    cv2.putText(image, text, org, font, font_size, color, thickness, cv2.LINE_AA)
-
-    cv2.imshow(text,image)
-    
-    # waiting using waitKey method
-    key = cv2.waitKey(30000)
-    cv2.destroyAllWindows()
-    return key == ord('k')
+def randomize_image(path):
+    """
+        Make 4 pixels of the image (the 4 corners) random color. This way they wont be regrouped on MPC.
+    """
+    PILimage = Image.open(path)
+    x,y = PILimage.size
+    PILimage.putpixel((0, y-1), (random.randrange(0,255), random.randrange(0,255), random.randrange(0,255)))
+    PILimage.putpixel((0, 0), (random.randrange(0,255), random.randrange(0,255), random.randrange(0,255)))
+    PILimage.putpixel((x-1, 0), (random.randrange(0,255), random.randrange(0,255), random.randrange(0,255)))
+    PILimage.putpixel((x-1, y-1), (random.randrange(0,255), random.randrange(0,255), random.randrange(0,255)))
+    PILimage.save(path)

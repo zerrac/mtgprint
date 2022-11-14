@@ -8,34 +8,23 @@ import mtgprint.scryfall as scryfall
 import mtg_parser
 
 @dataclass
-class Card:
-
+class Cardboard:
     qty: str
-    card: str
-    preferred_lang: str = ''
+    name: str
     preferred_set: str = None
+    oracle_id: str = None
     preferred_number: str = None
-    
     def __str__(self):
-        return "%s %s (%s) %s" % (self.qty, self.name, self.card['set'], self.card['collector_number'])
+        return "%s %s" % (self.qty, self.name)
+
+@dataclass
+class Card(Cardboard):
+    pass
     
-    @property
-    def name(self) -> str:
-        try:
-            name = self.card['printed_name']
-        except KeyError:
-            name = self.card['name']
-        return name
-
-    def __getitem__(self, key):
-        return self.card[key]
-
-    def __contains__(self, key):
-        return key in self.card
-        
-    def select_best_candidate(self):
-        self.card = select_best_candidate(self.card, self.preferred_lang, self.preferred_set, self.preferred_number)
-
+@dataclass
+class Token(Cardboard):
+    def __str__(self):
+        return "%s (oracle_id: %s)" % (super().__str__(), self.oracle_id)
 
 class Deck:
     def __init__(self,deck_name):
@@ -64,105 +53,27 @@ class Deck:
     def count_tokens(self):
         return sum([token.qty for token in self.tokens])
     
-    def has_card(self, card_type, card_name, card_set, card_number):
-        if card_type == 'card':
+    def has_card(self, card):
+        if isinstance(card, Card):
             card_list = self.cards
-        elif card_type == 'token':
+        elif isinstance(card, Token):
             card_list = self.tokens
         else:
-            raise ValueError('Unknown type %s' % card_type)
-        i = next((i for i, card in enumerate(card_list) if card['name'] == card_name and card['set'] == card_set and card['collector_number'] == card_number), -1)
+            raise ValueError('Unknown type %s' % type(card))
 
-        return i >= 0, i
+        i = next((i for i, c in enumerate(card_list) if c.name == card.name and c.oracle_id==card.oracle_id), -1)
+
+        return i >= 0, card_list, i
     
-    def _add(self, card_type, card):
-
-        has_card, card_indice = self.has_card(card_type, card['name'], card['set'], card['collector_number'])
-
+    def add_card(self, card):
+        
+        has_card, card_list, card_indice = self.has_card(card)
         if has_card:
-            if card_type == 'token':
-                self.tokens[card_indice].qty += card.qty
-            elif card_type == 'card':
-                self.cards[card_indice].qty += card.qty
+                card_list[card_indice].qty += card.qty
         else:
-            if card_type == 'token':
-                self.tokens.append(card)
-            elif card_type == 'card':
-                self.cards.append(card)
+            card_list.append(card)
         
         self.len += card.qty
-
-    def add_card(self, card):
-        self._add('card', card)
-
-    def add_token(self, token):
-        self._add('token', token)
-
-
-def evaluate_card_score(card, preferred_lang="fr"):
-    score = 0    
-    if card["lang"] == preferred_lang:
-        score += 200
-    elif card["lang"] == 'en':
-        score += 100
-
-    if card["collector_number"].isnumeric():
-        score += 80
-
-    if  'type_line' in card and card['type_line'].lower().startswith('basic land') and card['full_art']:
-        score += 50
-
-    if card['frame'] == '2015':
-        score += 40
-
-    if card['set'] != 'sld':    
-        score += 10 
-        
-    if card["image_status"] == 'highres_scan':
-        score += 2
-    elif card["image_status"] == 'lowres':
-        score += 1
-        
-    return score
-
-def select_best_candidate(card, preferred_lang='fr', preferred_set=None, preferred_number=None):
-    try:
-        prints = scryfall.get_prints(card["oracle_id"], set_filter=preferred_set, number_filter=preferred_number)
-    except HTTPError:
-        prints = scryfall.get_prints(card["oracle_id"])
-
-    best_score = 0
-    best_content_length = 0
-    for unique_print in tqdm(prints, desc="Scanning prints of %s " % card['name'], unit="print", leave=False):
-        if unique_print['lang'] != preferred_lang:
-            try:
-                localized_print = scryfall.get_localized_card(unique_print["set"],unique_print['collector_number'], preferred_lang)
-            except HTTPError:
-                # 404 -> The print is not available in preferred language
-                localized_print = unique_print
-        else:
-            localized_print = unique_print
-
-        if localized_print["image_status"] == 'placeholder':
-            # We dont want placeholders, better use english version
-            localized_print = card
-
-        print_score = evaluate_card_score(localized_print,preferred_lang)
-        if print_score > best_score:
-            selected_print = localized_print
-            best_score = print_score
-
-            selected_print_content_length = scryfall.image_getsize(scryfall.get_face_url(selected_print))
-
-        elif print_score ==  best_score:
-            localized_print_content_length = scryfall.image_getsize(scryfall.get_face_url(localized_print))
-            if localized_print_content_length > selected_print_content_length:
-                selected_print = localized_print
-                selected_print_content_length = localized_print_content_length
-    logging.info("Selected print for %s has a score of %i (localized in '%s' and with image quality '%s')" % (card['name'], best_score, selected_print['lang'], selected_print['image_status'] )) 
-
-    return selected_print
-
 
 def parse_deckfile(decklist, preferred_lang='fr'):
     if os.path.isfile(decklist):
@@ -177,15 +88,13 @@ def parse_deckfile(decklist, preferred_lang='fr'):
             card = scryfall.named(parsed_card.name)
             card_tokens = scryfall.get_tokens(card)
             
-            selected_print = select_best_candidate(card,  preferred_lang, parsed_card.extension, parsed_card.number)
-            card = Card(parsed_card.quantity, selected_print, preferred_lang, parsed_card.extension, parsed_card.number)
+            card = Card(qty=parsed_card.quantity,name=parsed_card.name, preferred_set=parsed_card.extension, preferred_number=parsed_card.number)
             deck.add_card(card)
             
             for token_id in card_tokens:
                 token = scryfall.get_card_by_id(token_id)
-                selected_print = select_best_candidate(token,  preferred_lang, card['set'])
-                token = Card(1, selected_print, preferred_lang)
-                deck.add_token(token)
+                token = Token(qty=1, name=token['name'], oracle_id=token['oracle_id'])
+                deck.add_card(token)
             
         except HTTPError:
             print("Card %s not found, skipping..." % card_name)
