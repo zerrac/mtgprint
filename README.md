@@ -3,13 +3,13 @@
 Prepare a list of card to be printed as proxies on custom playing cards.
 
 ## Fonctionalities
-Parse decklist in arena format
+- Parse decklist in arena format
 
-For each card, automaticaly fetch the best option between hundreds of prints, based on language, image resolution or per-image preference.
+- For each card, automaticaly fetch the best option between hundreds of prints, based on language, image resolution or per-image preference.
 
-For each card, automaticaly fetch associated tokens.
+- For each card, automaticaly fetch associated tokens.
 
-Prepare each fetched image for print on MPC, correct some imperfections, adding appropriate border and covering trademark with a stamp.
+- Prepare each fetched image to be printed on MPC, correct some imperfections, add appropriate border and cover trademark with a stamp.
 
 ## Usage
 
