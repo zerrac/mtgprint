@@ -169,7 +169,6 @@ def randomize_image(PILimage):
 class TrademarkNotFound(Exception):
     pass
 
-
 def cover_trademark(PILimage, templates, cover):
     image = cv2.cvtColor(np.array(PILimage), cv2.COLOR_RGB2BGR)
 
@@ -192,10 +191,11 @@ def cover_trademark(PILimage, templates, cover):
 
             detections.append(match)
 
-    detections = _non_max_suppression(detections, non_max_suppression_threshold=NMS_THRESHOLD)
-    
     if len(detections) == 0:
         raise TrademarkNotFound()
+
+    detections = _non_max_suppression(detections, non_max_suppression_threshold=NMS_THRESHOLD)
+    
 
     image_with_detections = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image_with_detections = Image.fromarray(image_with_detections)

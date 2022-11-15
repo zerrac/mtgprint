@@ -8,15 +8,13 @@ import os
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description="Cover trademarks on images in a given folder")
+    parser = argparse.ArgumentParser(description="save every images in a given folder in 300dpi")
     parser.add_argument('images_folder',
                         help="Path to a folder containing images")
 
     args = parser.parse_args()
 
-    for file in [x for x in Path(args.images_folder).iterdir() if x.is_file()]:
-        if not file.name.startswith('altered-') :
-            continue
+    for file in [x for x in Path(args.images_folder).glob('*') if x.is_file()]:
         print(file)
-        PILimage = Image.open(file)
-        PILimage.save(file, dpi=(300,300))
+        with Image.open(file) as img:
+            img.save(file, dpi=(300,300))
