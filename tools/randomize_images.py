@@ -16,4 +16,6 @@ if __name__ == '__main__':
 
     for file in [x for x in Path(args.images_folder).iterdir() if x.is_file()]:
         print(file)
-        randomize_image(file)
+        with Image.open(file) as img:
+            img = randomize_image(img)
+            img.save(file)

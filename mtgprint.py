@@ -2,28 +2,19 @@
 
 import argparse
 from pathlib import Path
-from mtgprint.deck import parse_deckfile, select_best_candidate
-from mtgprint.print import fetch_card
-from mtgprint.images import add_borders, measure_blurriness, keep_blurry, set_dpi
 import mtgprint.scryfall as scryfall
 import shutil
 import os
-import cv2
+import mtg_parser
+from PIL import Image
+import random
 
+from mtgprint.deck import parse_deckfile, Deck, Card
+from mtgprint.print import fetch_card
+from mtgprint.images import add_borders, randomize_image, Template, cover_trademark, TrademarkNotFound
+import mtgprint.utils as utils
 
-def colored_print(string: str, color):
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    print(color + BOLD + string + ENDC)
-
-def print_header(string: str):
-    HEADER = '\033[95m'
-    colored_print(string,HEADER)
-
-def print_ok(string: str):
-    OK = '\033[92m'
-    colored_print(string, OK)
-
+    
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Prepare decks for printing as proxies.')
     parser.add_argument('--decklist', default="decklist.txt",
@@ -35,53 +26,59 @@ if __name__ == '__main__':
     parser.add_argument('--language', '-l', default="fr", type=str,
                         dest="preferred_lang",
                         help='Card prints localized in specified language will be prioritized. Please use ISO code. (default : fr)')
-    parser.add_argument('--threshold', '-t', default="300", type=float,
-                        dest="threshold",
-                        help='Threshold for blurriness detection. For image that does not reach this treshold you will be proposed to use english version of the card instead.')
-    parser.add_argument('--dontKeepBlurry', default=True,
-                        dest="dontkeepblurry", action='store_false',
-                        help='Always use english version when the translated version is bellow blurriness treshold')
+    parser.add_argument('--notforsale', type=str,
+                        dest="notforsale", default=os.path.dirname(__file__)+"/tools/resources/not_for_sale.png",
+                        help='Path to the image to put over the trademark')
 
     args = parser.parse_args()
 
-    print_header("Loading deck list...")
-    deck = parse_deckfile(args.decklist, args.preferred_lang)
+    utils.print_header("Loading deck list...")
+    deck = parse_deckfile(args.decklist, args.preferred_lang)    
 
-    if args.deckname:
-        deck.name = args.deckname
-        
-    print_header("Fetchings source images...")
+    utils.print_header("Fetchings source images...")
     for card in deck.cards + deck.tokens:
         card.pathes = fetch_card(card, deck.name)
     
-        blurriness = measure_blurriness(card.pathes[0])
-        if blurriness < args.threshold and args.preferred_lang != 'en':
-            print("Image %s seems blurry... " % card['name'], end="")
-            if args.dontkeepblurry and keep_blurry(card):
-                print('keeping blurry card...')
-            else:
-                for path in card.pathes:
-                    print('Using english version...')
-                    os.remove(path)
-                card.preferred_lang = 'en'
-                card.select_best_candidate()
-                card.pathes = fetch_card(card, deck.name)
 
-    print_header("Preparing for impression...")
+    utils.print_header("Preparing for impression...")
     counter=0
     for card in deck.cards + deck.tokens:
-        counter += 1
-        for path in card.pathes:
-            set_dpi(path, 300)
-            add_borders(path)
-            bordered = Path(path.parents[0], "%02d-bordered-%s" % (counter, path.name))
-            os.rename(path, bordered)
-            # if card.qty>1:
-            #     for i in range(card.qty - 1):
-            #         copy_name = "%s - %i%s"% (bordered.stem, i+2, ''.join(bordered.suffixes))
-            #         copy = Path(bordered.parents[0], copy_name)
-            #         shutil.copy(bordered, copy)
+        for _ in range(card.qty):
+            counter += 1
+            for path in card.pathes:
+                try:
+                    img = Image.open(path)
+                    x,y = img.size
+                    pix = img.load()
+                except FileNotFoundError:
+                    print(path)
+                    raise
+                
+                img = add_borders(img)
+                img = randomize_image(img)
 
-print_ok("Deck '%s' is ready for printing !" % deck.name)
+                templates = [
+                    Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark.png"),
+                    Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt.png"),
+                    Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt2.png"),
+                    Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt3.png"),
+                    Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt4.png"),
+                    Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt5.png"),
+                    Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt6.png"),
+                    Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt7.png"),
+                ]
+                not_for_sale = Image.open(args.notforsale)
+                try:
+                    img = cover_trademark(img, templates, not_for_sale)
+                except TrademarkNotFound:
+                    utils.print_warn("Trademark was not detected on " + str(path))
+
+                dest = Path(path.parents[0], "%02d-%s" % (counter, path.name))
+                img.save(dest, dpi=(300,300))
+                img.close()
+                if _ == card.qty - 1:
+                    os.remove(path)
+
+utils.print_ok("Deck '%s' is ready for printing !" % deck.name)
 
 print(deck)
