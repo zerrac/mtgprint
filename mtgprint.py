@@ -22,7 +22,7 @@ if __name__ == '__main__':
                         help='load deck list from a file (default : decklist.txt)')
     parser.add_argument('--deckname', type=str,
                         dest="deckname",
-                        help='Name of the deck aka name of the folder where the deck will be printed. (default: decklist file name without extension')
+                        help='Name of the deck aka name of the folder where the deck will be printed. (default: decklist file name without extension)')
     parser.add_argument('--language', '-l', default="fr", type=str,
                         dest="preferred_lang",
                         help='Card prints localized in specified language will be prioritized. Please use ISO code. (default : fr)')
@@ -42,42 +42,47 @@ if __name__ == '__main__':
 
     utils.print_header("Preparing for impression...")
     counter=0
+    not_for_sale = Image.open(args.notforsale)
+    templates = [
+        Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark.png"),
+        Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt.png"),
+        Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt2.png"),
+        Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt3.png"),
+        Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt4.png"),
+        Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt5.png"),
+        Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt6.png"),
+        Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt7.png"),
+    ]
+
+    card_counter = 0
     for card in deck.cards + deck.tokens:
-        for _ in range(card.qty):
-            counter += 1
-            for path in card.pathes:
-                try:
-                    img = Image.open(path)
-                    x,y = img.size
-                    pix = img.load()
-                except FileNotFoundError:
-                    print(path)
-                    raise
-                
-                img = add_borders(img)
-                img = randomize_image(img)
+        for path in card.pathes:
+            
+            try:
+                img = Image.open(path)
+                x,y = img.size
+                pix = img.load()
+            except FileNotFoundError:
+                print(path)
+                raise
+            img = add_borders(img)
+            img = randomize_image(img)
 
-                templates = [
-                    Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark.png"),
-                    Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt.png"),
-                    Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt2.png"),
-                    Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt3.png"),
-                    Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt4.png"),
-                    Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt5.png"),
-                    Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt6.png"),
-                    Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt7.png"),
-                ]
-                not_for_sale = Image.open(args.notforsale)
-                try:
-                    img = cover_trademark(img, templates, not_for_sale)
-                except TrademarkNotFound:
+            try:
+                img = cover_trademark(img, templates, not_for_sale)
+            except TrademarkNotFound:
+                if not path.match("*/back/*"):
                     utils.print_warn("Trademark was not detected on " + str(path))
-
-                dest = Path(path.parents[0], "%02d-%s" % (counter, path.name))
+            
+            counter=0    
+            for _ in range(card.qty):
+                counter += 1
+                
+                dest = Path(path.parents[0], "%02d-%s" % (card_counter+counter, path.name))
                 img.save(dest, dpi=(300,300))
-                img.close()
-                if _ == card.qty - 1:
-                    os.remove(path)
+            img.close()
+            os.remove(path)
+        card_counter += counter
 
 utils.print_ok("Deck '%s' is ready for printing !" % deck.name)
 
