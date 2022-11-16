@@ -97,8 +97,6 @@ def parse_deckfile(decklist, preferred_lang='fr'):
                 deck.add_card(token)
             
         except HTTPError:
-            print("Card %s not found, skipping..." % card_name)
+            print("Card %s not found, skipping..." % parsed_card.name)
             continue
-    if len(deck) == 0:
-        raise BaseException("No cards have been found in your deck list")
     return deck

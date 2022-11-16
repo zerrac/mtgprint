@@ -34,7 +34,9 @@ if __name__ == '__main__':
 
     utils.print_header("Loading deck list...")
     deck = parse_deckfile(args.decklist, args.preferred_lang)    
-
+    if len(deck) == 0:
+        utils.print_error("No cards valid have been found in your deck list")
+        exit(1)
     utils.print_header("Fetchings source images...")
     for card in deck.cards + deck.tokens:
         card.pathes = fetch_card(card, deck.name)
