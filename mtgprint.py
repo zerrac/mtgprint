@@ -66,20 +66,20 @@ if __name__ == '__main__':
                 print(path)
                 raise
             img = add_borders(img)
-            img = randomize_image(img)
 
             try:
                 img = cover_trademark(img, templates, not_for_sale)
             except TrademarkNotFound:
                 if not path.match("*/back/*"):
                     utils.print_warn("Trademark was not detected on " + str(path))
-            
+            img_copy = img.copy()
             counter=0    
             for _ in range(card.qty):
                 counter += 1
                 
                 dest = Path(path.parents[0], "%02d-%s" % (card_counter+counter, path.name))
-                img.save(dest, dpi=(300,300))
+                img_copy = randomize_image(img)
+                img_copy.save(dest, dpi=(300,300))
             img.close()
             os.remove(path)
         card_counter += counter
