@@ -88,7 +88,7 @@ def parse_deckfile(decklist, preferred_lang='fr'):
             card = scryfall.named(parsed_card.name)
             card_tokens = scryfall.get_tokens(card)
             
-            card = Card(qty=parsed_card.quantity,name=parsed_card.name, preferred_set=parsed_card.extension, preferred_number=parsed_card.number)
+            card = Card(qty=parsed_card.quantity,name=card['name'], preferred_set=parsed_card.extension, preferred_number=parsed_card.number)
             deck.add_card(card)
             
             for token_id in card_tokens:
