@@ -54,6 +54,9 @@ if __name__ == '__main__':
         Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt5.png"),
         Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt6.png"),
         Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt7.png"),
+        Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt8.png"),
+        Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt9.png"),
+        Template(image_path=os.path.dirname(__file__)+"/tools/resources/trademark_alt10.png"),
     ]
 
     card_counter = 0
