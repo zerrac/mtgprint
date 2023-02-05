@@ -3,6 +3,7 @@ import shutil
 import os
 from pathlib import Path
 from mtgprint.deck import Card, Token
+from urllib.error import HTTPError
 
 def download(url, dest):
     if not os.path.exists(dest):
@@ -14,9 +15,12 @@ def download(url, dest):
             with open(dest, 'xb') as f:
                 re.raw.decode_content = True
                 shutil.copyfileobj(re.raw, f)
-        except:
+        except HTTPError as err:
             os.remove(dest)
-            raise
+            if err.code == 404:
+                print("404 lors de la récupération de l'image. Peut etre qu'il faut mettre à jour la base de l'api ?")
+            else:
+                raise
     else:
         print("Previous copy of the card found. Reusing it!")
 
